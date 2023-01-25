@@ -1,10 +1,10 @@
 // Import
-import Project.ExceptionMenuDriven;
+import Project.ComparatorMenuDriven;
 
 public class Testing
 {
 	public static void main(String[] args) {
-		ExceptionMenuDriven obj = new ExceptionMenuDriven();
+		ComparatorMenuDriven obj = new ComparatorMenuDriven();
 		obj.run();
 	}
 }
