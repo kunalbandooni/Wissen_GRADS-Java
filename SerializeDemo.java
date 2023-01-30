@@ -16,7 +16,6 @@ public class SerializeDemo
 			oos.close();
 
 			System.out.println("SAVED");
-
 		}catch(Exception e){
 			System.out.print(e);
 		}
