@@ -117,6 +117,27 @@ class Input
 		return intValue;
 	}
 
+	// Input a single character
+	protected char inputChar()
+	{
+		char ch = 'N';
+
+		try
+		{
+			ch = new Scanner(System.in).next().charAt(0);
+		}
+		catch(InputMismatchException e)
+		{
+			System.out.println("--------------------------------------------------");
+			System.out.println("\tInput Mismatch Exception Occured\n\tMake sure you are entering a number");
+		}
+		catch(Exception e){
+			System.out.println("\n\tUnknown Error Occured");
+		}
+
+		return ch;
+	}
+
 	// Input integer value using try-catch
 	protected int inputInt()
 	{
@@ -228,14 +249,27 @@ class JDBC
 	private String username = "system";
 	private String password = "tiger";
 
+	private static Connection con;
+	private static Statement stmt;
+
+	// contructor to JDBC
+	public JDBC()
+	{
+		try{
+			Class.forName(driver);
+			con = DriverManager.getConnection(url, username, password);
+			stmt = con.createStatement();
+		}
+		catch(Exception e){
+			System.out.println("\t" + e);
+		}
+	}
+
 	// Adds data to EMPLOYEE table
 	public void add(Employee empObject)
 	{
 		try
-		{
-			Class.forName(driver);
-			Connection con = DriverManager.getConnection(url, username, password);
-			
+		{	
 			PreparedStatement pstmt = con.prepareStatement("insert into EMPLOYEE values(?, ?, ?, ?, ?)");
 
 			int employeeID = empObject.getEmployeeID();
@@ -251,10 +285,8 @@ class JDBC
 			pstmt.setString(5, designation);
 
 			pstmt.execute();
-			pstmt.execute("commit");
-			
+
 			pstmt.close();
-			con.close();
 
 			System.out.println("\n\tADDED " + designation);
 		}
@@ -289,25 +321,21 @@ class JDBC
 
 		try
 		{
-			Class.forName(driver);
-			Connection con = DriverManager.getConnection(url, username, password);
-
-			Statement stmt = con.createStatement();
-
 			ResultSet rs = stmt.executeQuery("select * from EMPLOYEE order by " + queryVariable);
-			while(rs.next())
-			{
-				System.out.println("\n--------------------------------------------------" + 
-					"\n\tEmployee ID \t : " + rs.getInt(1) +
-					"\n\tName \t\t : " + rs.getString(2) + 
-					"\n\tAge \t\t : " + rs.getInt(3) + 
-					"\n\tSalary \t\t : " + rs.getDouble(4) +
-					"\n\tDesignation \t : " + rs.getString(5) );
+			if(rs.next()){
+				while(rs.next())
+				{
+					System.out.println("\n--------------------------------------------------" + 
+						"\n\tEmployee ID \t : " + rs.getInt(1) +
+						"\n\tName \t\t : " + rs.getString(2) + 
+						"\n\tAge \t\t : " + rs.getInt(3) + 
+						"\n\tSalary \t\t : " + rs.getDouble(4) +
+						"\n\tDesignation \t : " + rs.getString(5) );
+				}
 			}
+			else
+				System.out.println("\n\tNO RECORD FOUND!!");
 			rs.close();
-			
-			stmt.close();
-			con.close();
 		}
 		catch(Exception e)
 		{
@@ -320,18 +348,9 @@ class JDBC
 	{
 		try
 		{
-			Class.forName(driver);
-			Connection con = DriverManager.getConnection(url, username, password);
-
-			Statement stmt = con.createStatement();
-
 			stmt.executeUpdate("update EMPLOYEE set SALARY = SALARY + 2000 where DESIGNATION = 'CLERK'");
 			stmt.executeUpdate("update EMPLOYEE set SALARY = SALARY + 5000 where DESIGNATION = 'PROGRAMMER'");
 			stmt.executeUpdate("update EMPLOYEE set SALARY = SALARY + 10000 where DESIGNATION = 'MANAGER'");
-			stmt.executeUpdate("commit");
-			
-			stmt.close();
-			con.close();
 
 			System.out.println("\tRaised Salaries");
 		}
@@ -346,34 +365,37 @@ class JDBC
 	{
 		try
 		{
-			Class.forName(driver);
-			Connection con = DriverManager.getConnection(url, username, password);
-			
 			Input input = new Input();
 
 			System.out.print("\tEnter Employee ID : ");
 			int employeeID = input.inputInt();
 
-			Statement stmt = con.createStatement();
 			ResultSet rs = stmt.executeQuery("select * from EMPLOYEE where EID = " + employeeID);
 
-			if(!rs.next())
-				System.out.println("\n\tNO RECORD FOUND WITH SUCH EMPLOYEE ID!!");
-			else
+			if(rs.next())
 			{
-				PreparedStatement pstmt = con.prepareStatement("delete from EMPLOYEE where EID = ?");
+				System.out.println("\n--------------------------------------------------" + 
+					"\n\tEmployee ID \t : " + rs.getInt(1) +
+					"\n\tName \t\t : " + rs.getString(2) + 
+					"\n\tAge \t\t : " + rs.getInt(3) + 
+					"\n\tSalary \t\t : " + rs.getDouble(4) +
+					"\n\tDesignation \t : " + rs.getString(5) );
 
-				pstmt.setInt(1, employeeID);
-				pstmt.execute();
-				pstmt.execute("commit");
-			
-				System.out.println("\n\tDELETED RECORD WITH EMPLOYEE ID" + employeeID);
+				System.out.println("\n\tDo you want to delete this record ?");
+				System.out.print("\tEnter choice (Y/N) : ");
+				char confirm = input.inputChar();
 
-				pstmt.close();
+				if(confirm == 'Y'){
+					stmt.executeUpdate("delete from EMPLOYEE where EID = " + employeeID);
+					System.out.println("\n\tDELETED RECORD WITH EMPLOYEE ID " + employeeID);
+				}
+				else
+					System.out.println("\n\tRECORD NOT DELETED");
 			}
+			else
+				System.out.println("\n\tNO RECORD FOUND WITH SUCH EMPLOYEE ID!!");
+			
 			rs.close();
-			stmt.close();
-			con.close();
 		}
 		catch(Exception e)
 		{
